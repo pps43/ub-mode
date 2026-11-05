@@ -57,9 +57,9 @@ jobs:
               --base "$base_branch" \
               --head "$sync_branch" \
               --title "Monthly upstream sync: unclebob/ub-mode" \
-              --body "Automated monthly merge of `unclebob/ub-mode:master` into this fork. Review the diff and merge this PR manually. If the sync has conflicts, the workflow stops and no PR is opened."
+              --body "Automated monthly merge of unclebob/ub-mode:master into this fork. Review the diff and merge this PR manually. If the sync has conflicts, the workflow stops and no PR is opened."
           else
             gh pr edit "$existing_pr" \
               --title "Monthly upstream sync: unclebob/ub-mode" \
-              --body "Automated monthly merge of `unclebob/ub-mode:master` into this fork. Review the diff and merge this PR manually. If the sync has conflicts, the workflow stops and no PR is opened."
+              --body "Automated monthly merge of unclebob/ub-mode:master into this fork. Review the diff and merge this PR manually. If the sync has conflicts, the workflow stops and no PR is opened."
           fi
