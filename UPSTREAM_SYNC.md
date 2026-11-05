@@ -4,4 +4,4 @@ This fork checks `unclebob/ub-mode:master` on the first day of each month and ca
 
 The workflow does not merge the pull request. Review the changes and merge it manually. If Git cannot merge upstream cleanly, the run fails before pushing a branch; resolve the conflict in a separate branch and open a PR yourself.
 
-After creating a fork, GitHub may require Actions to be enabled for that fork. In the repository's Actions settings, allow GitHub Actions and set workflow permissions to read and write so the built-in `GITHUB_TOKEN` can push the sync branch and open a pull request.
+GitHub Actions is enabled for this fork, and the repository is configured to let Actions create pull requests. The workflow requests only `contents: write` and `pull-requests: write` for its built-in `GITHUB_TOKEN`; the repository-wide default token permissions remain read-only.
