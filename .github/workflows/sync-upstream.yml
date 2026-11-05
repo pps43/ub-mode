@@ -1,0 +1,65 @@
+name: Monthly upstream sync
+
+on:
+  schedule:
+    - cron: "17 3 1 * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: monthly-upstream-sync
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the fork
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Merge upstream and open a review PR
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          upstream_url="https://github.com/unclebob/ub-mode.git"
+          base_branch="master"
+          sync_branch="automation/upstream-sync-$(date -u +%Y-%m)"
+
+          git remote add upstream "$upstream_url"
+          git fetch upstream "$base_branch"
+
+          if git merge-base --is-ancestor "upstream/$base_branch" "origin/$base_branch"; then
+            echo "The fork already contains the latest upstream commits."
+            exit 0
+          fi
+
+          git switch --force-create "$sync_branch" "origin/$base_branch"
+          git merge --no-edit "upstream/$base_branch"
+          git push --force-with-lease origin "$sync_branch"
+
+          existing_pr="$(gh pr list \
+            --state open \
+            --base "$base_branch" \
+            --head "${GITHUB_REPOSITORY_OWNER}:$sync_branch" \
+            --json number \
+            --jq '.[0].number // empty')"
+
+          if [[ -z "$existing_pr" ]]; then
+            gh pr create \
+              --base "$base_branch" \
+              --head "$sync_branch" \
+              --title "Monthly upstream sync: unclebob/ub-mode" \
+              --body "Automated monthly merge of `unclebob/ub-mode:master` into this fork. Review the diff and merge this PR manually. If the sync has conflicts, the workflow stops and no PR is opened."
+          else
+            gh pr edit "$existing_pr" \
+              --title "Monthly upstream sync: unclebob/ub-mode" \
+              --body "Automated monthly merge of `unclebob/ub-mode:master` into this fork. Review the diff and merge this PR manually. If the sync has conflicts, the workflow stops and no PR is opened."
+          fi
